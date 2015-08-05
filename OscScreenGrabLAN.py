@@ -23,6 +23,7 @@ import StringIO
 import sys
 import os
 import platform
+import argparse
 
 # Update the next lines for your own default settings:
 path_to_save = ""
@@ -43,34 +44,19 @@ company = 0
 model = 1
 serial = 2
 
-# Check command line parameters
-script_name = os.path.basename(sys.argv[0])
+''' Start of Parsing Code '''
 
+parser = argparse.ArgumentParser(description="Utility for capturing screen data from Rigol DS1000Z Series oscilloscopes")
+parser.add_argument('-ip', dest="IP", help='IP of the target scope', default="192.168.2.13")
+parser.add_argument("-f", dest="file_format", help="Destination file format", default="png")
+parser.add_argument('-n', dest='destFilename', type=str, default="", help='Optional filename. (Default: modelNum_serialNum_timestamp)')
 
-def print_help():
-    # Print usage
-    print
-    print "Usage:"
-    print "    " + "python " + script_name + " png|bmp|csv [oscilloscope_IP [save_path]]"
-    print
-    print "Usage examples:"
-    print "    " + "python " + script_name + " png"
-    print "    " + "python " + script_name + " csv 192.168.1.3"
-    print
-    print "The following usage cases are not yet implemented:"
-    print "    " + "python " + script_name + " bmp 192.168.1.3 my_place_for_captures"
-    print
-    print "This program captures either the waveform or the whole screen"
-    print "    of a Rigol DS1000Z series oscilloscope, then save it on the computer"
-    print "    as a CSV, PNG or BMP file with a timestamp in the file name."
-    print
-    print "    The program is using LXI protocol, so the computer"
-    print "    must have LAN connection with the oscilloscope."
-    print "    USB and/or GPIB connections are not used by this software."
-    print
-    print "    No VISA, IVI or Rigol drivers are needed."
-    print
+args = parser.parse_args()
 
+IP_DS1104Z = args.IP
+file_format = args.file_format
+
+'''
 # Read/verify file type
 if len(sys.argv) <= 1:
     print_help()
@@ -87,6 +73,8 @@ if len(sys.argv) > 1:
     IP_DS1104Z = sys.argv[2]
 
 # Create/check if 'path' exists
+'''
+''' End of Parsing Code '''
 
 # Check network response (ping)
 if platform.system() == "Windows":
@@ -127,7 +115,11 @@ print instrument_id
 
 # Prepare filename as C:\MODEL_SERIAL_YYYY-MM-DD_HH.MM.SS
 timestamp = time.strftime("%Y-%m-%d_%H.%M.%S", time.localtime())
-filename = path_to_save + id_fields[model] + "_" + id_fields[serial] + "_" + timestamp
+
+if(args.destFilename == ""):
+    filename = path_to_save + id_fields[model] + "_" + id_fields[serial] + "_" + timestamp
+else:
+    filename = path_to_save + args.destFilename + "_" + timestamp
 
 if file_format in ["png", "bmp"]:
     # Ask for an oscilloscope display print screen
